@@ -7,17 +7,6 @@ TODO:
 */
 
 var baseUrl = 'http://nullsurface.com/cmd/';
-var cursor = '_';
-
-function scrollToBottom() {
-    x = 0;
-    y = document.height;
-    window.scroll(x,y);
-}
-
-function removeLastChar(str) {
-    return str.substr(0, str.length - 1);
-}
 
 function makeResponse(cmd) {
     http = new XMLHttpRequest();
@@ -27,29 +16,30 @@ function makeResponse(cmd) {
     return http.responseText;
 }
 
-window.addEventListener('keypress', function(event) {
-    var charCode = (typeof event.which == "number") ? event.which : event.keyCode;
-    var c = String.fromCharCode(charCode);
-    var t = document.getElementById('text');
-    switch (event.keyCode) {
-    case 8: //backspace
-        var len = t.innerHTML.length;
-        if (t.innerHTML.substring(len - 7, len - 2) !== '<br>$') {
-            t.innerHTML = t.innerHTML.substring(0, len - 2);
-            t.innerHTML += cursor;
-        }
-        break;
-    case 13: // Return
-        var cmd = t.innerHTML.substring(t.innerHTML.lastIndexOf('$') + 2);
-        cmd = removeLastChar(cmd);
-        t.innerHTML = removeLastChar(t.innerHTML);
-        t.innerHTML += '<br/><b>' + makeResponse(cmd) + '</b><br/>$ ' + cursor
-        scrollToBottom();
-        break;
-    default:
-        t.innerHTML = removeLastChar(t.innerHTML);
-        t.innerHTML += c;
-        t.innerHTML += cursor;
-        break;
-    }
-}, false);
+$(function() {
+      var prompt = $('#prompt');
+      var responseBox = $('#responses');
+      var code = null;
+      prompt.focus(
+          function(e) {
+              prompt.val('');
+          }
+      );
+
+      prompt.keypress(
+          function(e) {
+              code = (e.keyCode ? e.keyCode : e.which);
+              if (code == 13) {
+                  var command = prompt.val();
+                  var response = makeResponse(command);
+                  var responseDiv = ["<div class='responseBox'><span>", command, "</span><br/><span><b>", response, "</b></span></div>"].join("");
+                  responseBox.append(responseDiv);
+                  prompt.val('');
+                  var rBox = responseBox[0];
+                  var scrollHeight = Math.max(rBox.scrollHeight, rBox.clientHeight);
+                  console.log(scrollHeight);
+                  rBox.scrollTop = scrollHeight - rBox.clientHeight;
+              }
+          });
+
+  });
